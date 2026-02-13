@@ -434,63 +434,130 @@
         <div class="quote">Triush Forever</div>
     </div>
 
+    <style>
+        /* Full-screen fade-out overlay for transition */
+        #transition-overlay {
+            position: fixed;
+            inset: 0;
+            background: #A4161A;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1.5s ease;
+        }
+
+        #transition-overlay.fade-out {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* Valentine reveal message shown before redirect */
+        #reveal-msg {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease 0.8s;
+        }
+
+        #reveal-msg.show {
+            opacity: 1;
+        }
+
+        #reveal-msg .reveal-heart {
+            font-size: 8rem;
+            animation: heartbeat 0.6s ease-in-out infinite alternate;
+        }
+
+        #reveal-msg .reveal-text {
+            font-family: 'Allura', cursive;
+            font-size: clamp(3rem, 10vw, 7rem);
+            color: #fff;
+            text-shadow: 0 0 30px rgba(255,180,180,0.8);
+            margin-top: 1rem;
+        }
+
+        @keyframes heartbeat {
+            from { transform: scale(1); }
+            to   { transform: scale(1.15); }
+        }
+    </style>
+
+    <div id="transition-overlay"></div>
+    <div id="reveal-msg">
+        <div class="reveal-heart">❤️</div>
+        <div class="reveal-text">It's time...</div>
+    </div>
+
     <script>
-        // Countdown timer
         const targetDate = new Date('February 14, 2026 00:00:00').getTime();
 
+        const daysEl    = document.getElementById('days');
+        const hoursEl   = document.getElementById('hours');
+        const minutesEl = document.getElementById('minutes');
+        const secondsEl = document.getElementById('seconds');
+
+        function triggerReveal() {
+            // Show overlay fade to red
+            const overlay = document.getElementById('transition-overlay');
+            const msg     = document.getElementById('reveal-msg');
+
+            overlay.classList.add('fade-out');
+            msg.classList.add('show');
+
+            // After 2.8s redirect to valentine main page
+            setTimeout(() => {
+                window.location.href = 'valentine-main.html';
+            }, 2800);
+        }
+
         function updateCountdown() {
-            const now = new Date().getTime();
+            const now      = new Date().getTime();
             const distance = targetDate - now;
 
-            if (distance < 0) {
-                document.getElementById('days').textContent = '00';
-                document.getElementById('hours').textContent = '00';
-                document.getElementById('minutes').textContent = '00';
-                document.getElementById('seconds').textContent = '00';
+            if (distance <= 0) {
+                daysEl.textContent    = '00';
+                hoursEl.textContent   = '00';
+                minutesEl.textContent = '00';
+                secondsEl.textContent = '00';
+                clearInterval(countdownInterval);
+                clearInterval(heartInterval);
+                triggerReveal();
                 return;
             }
 
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const days    = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours   = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-            const daysEl = document.getElementById('days');
-            const hoursEl = document.getElementById('hours');
-            const minutesEl = document.getElementById('minutes');
-            const secondsEl = document.getElementById('seconds');
-
-            // Update values with pulse animation
-            if (daysEl.textContent !== String(days).padStart(2, '0')) {
-                daysEl.textContent = String(days).padStart(2, '0');
-                daysEl.classList.add('pulse');
-                setTimeout(() => daysEl.classList.remove('pulse'), 500);
-            } else {
-                daysEl.textContent = String(days).padStart(2, '0');
+            function setVal(el, val) {
+                const str = String(val).padStart(2, '0');
+                if (el.textContent !== str) {
+                    el.textContent = str;
+                    el.classList.remove('pulse');
+                    void el.offsetWidth; // reflow
+                    el.classList.add('pulse');
+                    setTimeout(() => el.classList.remove('pulse'), 500);
+                }
             }
 
-            if (hoursEl.textContent !== String(hours).padStart(2, '0')) {
-                hoursEl.textContent = String(hours).padStart(2, '0');
-                hoursEl.classList.add('pulse');
-                setTimeout(() => hoursEl.classList.remove('pulse'), 500);
-            } else {
-                hoursEl.textContent = String(hours).padStart(2, '0');
-            }
-
-            if (minutesEl.textContent !== String(minutes).padStart(2, '0')) {
-                minutesEl.textContent = String(minutes).padStart(2, '0');
-                minutesEl.classList.add('pulse');
-                setTimeout(() => minutesEl.classList.remove('pulse'), 500);
-            } else {
-                minutesEl.textContent = String(minutes).padStart(2, '0');
-            }
-
+            setVal(daysEl, days);
+            setVal(hoursEl, hours);
+            setVal(minutesEl, minutes);
             secondsEl.textContent = String(seconds).padStart(2, '0');
+            secondsEl.classList.remove('pulse');
+            void secondsEl.offsetWidth;
             secondsEl.classList.add('pulse');
             setTimeout(() => secondsEl.classList.remove('pulse'), 500);
         }
 
-        // Create floating hearts
+        // Floating hearts
         function createHeart() {
             const heart = document.createElement('div');
             heart.className = 'heart';
@@ -499,26 +566,15 @@
             heart.style.animationDuration = (Math.random() * 10 + 10) + 's';
             heart.style.animationDelay = Math.random() * 5 + 's';
             heart.style.fontSize = (Math.random() * 20 + 15) + 'px';
-            
             document.getElementById('hearts').appendChild(heart);
-
-            // Remove heart after animation completes
-            setTimeout(() => {
-                heart.remove();
-            }, 20000);
+            setTimeout(() => heart.remove(), 20000);
         }
 
-        // Initialize
+        const countdownInterval = setInterval(updateCountdown, 1000);
         updateCountdown();
-        setInterval(updateCountdown, 1000);
 
-        // Create hearts periodically
-        setInterval(createHeart, 800);
-        
-        // Create initial hearts
-        for (let i = 0; i < 10; i++) {
-            setTimeout(createHeart, i * 300);
-        }
+        const heartInterval = setInterval(createHeart, 800);
+        for (let i = 0; i < 10; i++) setTimeout(createHeart, i * 300);
     </script>
 </body>
 </html>
