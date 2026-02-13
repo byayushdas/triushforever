@@ -497,22 +497,27 @@
     <script>
         const targetDate = new Date('February 14, 2026 00:00:00').getTime();
 
+        // ── Check immediately on page load ──
+        // If the date has already passed, redirect right away with no delay
+        if (new Date().getTime() >= targetDate) {
+            window.location.replace('valentine-main.html');
+        }
+
         const daysEl    = document.getElementById('days');
         const hoursEl   = document.getElementById('hours');
         const minutesEl = document.getElementById('minutes');
         const secondsEl = document.getElementById('seconds');
 
+        let countdownInterval = null;
+        let heartInterval = null;
+
         function triggerReveal() {
-            // Show overlay fade to red
             const overlay = document.getElementById('transition-overlay');
             const msg     = document.getElementById('reveal-msg');
-
             overlay.classList.add('fade-out');
             msg.classList.add('show');
-
-            // After 2.8s redirect to valentine main page
             setTimeout(() => {
-                window.location.href = 'valentine-main.html';
+                window.location.replace('valentine-main.html');
             }, 2800);
         }
 
@@ -541,7 +546,7 @@
                 if (el.textContent !== str) {
                     el.textContent = str;
                     el.classList.remove('pulse');
-                    void el.offsetWidth; // reflow
+                    void el.offsetWidth;
                     el.classList.add('pulse');
                     setTimeout(() => el.classList.remove('pulse'), 500);
                 }
@@ -570,10 +575,10 @@
             setTimeout(() => heart.remove(), 20000);
         }
 
-        const countdownInterval = setInterval(updateCountdown, 1000);
+        countdownInterval = setInterval(updateCountdown, 1000);
         updateCountdown();
 
-        const heartInterval = setInterval(createHeart, 800);
+        heartInterval = setInterval(createHeart, 800);
         for (let i = 0; i < 10; i++) setTimeout(createHeart, i * 300);
     </script>
 </body>
